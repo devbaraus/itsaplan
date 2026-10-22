@@ -34,6 +34,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - default
 
   # One-shot: dumps the database and applies the migrations, then exits. api, worker
   # and bot start only after it succeeds, so none of them runs against an old schema.
@@ -58,6 +60,8 @@ services:
     # BACKUP_RETENTION_DAYS (30) so a downgrade has something to restore.
     volumes:
       - db-backups:/backups
+    networks:
+      - default
 
   api:
     image: ghcr.io/croffasia/itsaplan-api:${VERSION:-latest}
@@ -109,6 +113,8 @@ services:
       start_period: 30s
     ports:
       - '${API_PORT:-3000}:3000'
+    networks:
+      - default
 
   # Webhook delivery, notification delivery, agent schedules, and agent runs.
   # Shares the database with the api. No public ports.
@@ -146,6 +152,8 @@ services:
       S3_REGION: ${S3_REGION:-us-east-1}
       S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-}
       # Optional tuning lives in apps/worker/src/config.ts.
+    networks:
+      - default
 
   # Telegram bot: long polling for the instance bot, completing the account links
   # users start from their profile. The bot token is stored in the database and
@@ -168,6 +176,8 @@ services:
       NODE_ENV: production
       DATABASE_URL: postgres://${POSTGRES_USER:-itsaplan}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-itsaplan}
       APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:?set APP_ENCRYPTION_KEY in .env}
+    networks:
+      - default
 
   # The origins are read at startup and handed to the browser by the server render,
   # so the image carries none of them and a changed API_URL only needs a restart.
@@ -200,7 +210,13 @@ services:
       start_period: 20s
     ports:
       - '${WEB_PORT:-3001}:3001'
+    networks:
+      - default
 
 volumes:
   postgres-data:
   db-backups:
+
+networks:
+  default:
+    driver: bridge
