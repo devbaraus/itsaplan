@@ -21,7 +21,7 @@ The stack refuses to start while one of these is missing:
 | ----------------------- | ------------------------------------------ |
 | `API_URL`               | public URL of the api                      |
 | `APP_URL`               | public origin of the web app               |
-| `POSTGRES_PASSWORD`     | `openssl rand -base64 32`                  |
+| `POSTGRES_PASSWORD`     | `openssl rand -hex 32`                     |
 | `BETTER_AUTH_SECRET`    | `openssl rand -base64 32`                  |
 | `APP_ENCRYPTION_KEY`    | `openssl rand -base64 32`                  |
 | `S3_ACCESS_KEY_ID`      | the RustFS root user, any name over 3 chars |

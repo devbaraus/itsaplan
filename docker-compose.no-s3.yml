@@ -111,8 +111,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-    ports:
-      - '${API_PORT:-3000}:3000'
     networks:
       - default
 
@@ -208,8 +206,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
-    ports:
-      - '${WEB_PORT:-3001}:3001'
     networks:
       - default
 
