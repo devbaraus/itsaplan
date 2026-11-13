@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'bun:test';
-import { apikey, db } from '@repo/db';
+import { agentRun, apikey, db } from '@repo/db';
 import { eq } from 'drizzle-orm';
 import { apiKeyApi, authedApi, type Api, ownWorkspaceId, createProject } from '#tests/helpers/app';
 import { createRole, listProjectRoles } from '#tests/helpers/roles';
@@ -9,7 +9,9 @@ import { resetDb } from '#tests/helpers/db';
 import { createAgent, projectIdOf } from '#tests/helpers/agents';
 import { createCredential } from '#tests/helpers/integrations';
 import { untaggedRoutes } from '#tests/helpers/mcp';
+import { streamAgent, type AgentRunEvent } from '../../runtime';
 import { getMastra } from '../../runtime/observability';
+import { processAgentRuns } from '../../run-poller';
 
 // AI agents owned by a team. Each agent is backed by a hidden bot user, owns a
 // better-auth API key, and is a member of the projects it is attached to, acting under
@@ -428,7 +430,56 @@ describe('ai agents', () => {
     expect(project.data!.assignees.find((a) => a.kind === 'member')?.respondsToMention).toBeNull();
   });
 
-  it("attaches an agent to a project on the team's default role", async () => {
+  it('defaults chatEnabled to true and turns it off with a patch', async () => {
+    const { asOwner, teamId } = await setup();
+    const def = await createAgent(asOwner, 'MKT', { name: 'C1', username: 'c1', kind: 'internal' });
+    const agentId = def.data!.agent.id;
+    expect(def.data?.agent).toMatchObject({ chatEnabled: true });
+
+    const upd = await agents(asOwner, teamId)({ agentId }).patch({ chatEnabled: false });
+    expect(upd.data).toMatchObject({ chatEnabled: false });
+    const read = await agents(asOwner, teamId)({ agentId }).get();
+    expect(read.data).toMatchObject({ chatEnabled: false });
+  });
+
+  it('refuses the chat of an agent with chat off, while a mention still runs it', async () => {
+    const { owner, asOwner } = await setup();
+    const agent = (
+      await createAgent(asOwner, 'MKT', {
+        name: 'Bot',
+        username: 'bot',
+        kind: 'internal',
+        chatEnabled: false,
+      })
+    ).data!.agent;
+    expect(agent).toMatchObject({ chatEnabled: false });
+
+    const run = await asOwner
+      .projects({ projectKey: 'MKT' })
+      ['ai-agents']({ agentId: agent.id })
+      .run.post({ prompt: 'hi' });
+    expect(run.status).toBe(403);
+    expect(run.error?.value).toMatchObject({ code: 'AGENT_CHAT_DISABLED' });
+    const events: AgentRunEvent[] = [];
+    for await (const event of streamAgent(agent.id, agent.projects[0].id, 'hi', {
+      callerUserId: owner.userId,
+    })) {
+      events.push(event);
+    }
+    expect(events[0]).toEqual({ type: 'error', message: 'This agent is not available in chat' });
+
+    const columnId = (await asOwner.projects({ projectKey: 'MKT' }).get()).data!.columns[0].id;
+    const issue = (
+      await asOwner.projects({ projectKey: 'MKT' }).issues.post({ columnId, title: 'Task' })
+    ).data!;
+    await asOwner.issues({ issueId: issue.id }).comments.post({ body: 'please review @bot' });
+    await processAgentRuns();
+    // The agent has no model credential, so a run that got past every gate fails on it.
+    const [queued] = await db.select().from(agentRun).where(eq(agentRun.issueId, issue.id));
+    expect(queued).toMatchObject({ attempts: 1, lastError: 'Agent has no model credential set' });
+  });
+
+  it('attaches an agent to a project on the default role', async () => {
     const { asOwner } = await setup();
     const roles = await listProjectRoles(asOwner, 'MKT');
     const defaultRole = roles.data!.find((r) => r.isDefault)!;
@@ -547,8 +598,8 @@ describe('ai agents', () => {
     ).toBeNull();
   });
 
-  it("hands an 'owner'-scoped agent to the member who chose the scope", async () => {
-    const { asOwner, teamId } = await setup();
+  it("keeps the creator as owner when another member chooses the 'owner' scope", async () => {
+    const { asOwner, owner, teamId } = await setup();
     const created = await createAgent(asOwner, 'MKT', {
       name: 'Ext',
       username: 'ext',
@@ -567,7 +618,11 @@ describe('ai agents', () => {
     )({ agentId: created.data!.agent.id }).patch({
       runnerScope: 'owner',
     });
-    expect(res.data).toMatchObject({ runnerScope: 'owner', ownerUserId: second.userId });
+    expect(res.data).toMatchObject({
+      runnerScope: 'owner',
+      ownerUserId: owner.userId,
+      ownerName: 'Owner',
+    });
   });
 
   it('regenerates the key with a new secret', async () => {
@@ -582,6 +637,26 @@ describe('ai agents', () => {
     expect(res.status).toBe(200);
     expect(res.data?.apiKey).toBeTruthy();
     expect(res.data?.apiKey).not.toBe(created.data?.apiKey);
+  });
+
+  it('issues keys for agents whose name is over 32 characters', async () => {
+    const { asOwner, teamId } = await setup();
+    const name = 'Inside Architecture Guardian of the Backlog';
+    const internal = await createAgent(asOwner, 'MKT', {
+      name,
+      username: 'guardian',
+      kind: 'internal',
+    });
+    expect(internal.status).toBe(201);
+    const external = await createAgent(asOwner, 'MKT', {
+      name,
+      username: 'guardian-ext',
+      kind: 'external',
+    });
+    expect(external.status).toBe(201);
+    expect((await apiKeyApi(external.data!.apiKey!).teams({ teamId }).get()).status).toBe(200);
+    const agentId = external.data!.agent.id;
+    expect((await agents(asOwner, teamId)({ agentId })['regenerate-key'].post()).status).toBe(200);
   });
 
   // A personal key expires; an agent replays its key with nothing that would renew
@@ -1079,6 +1154,7 @@ describe('ai agents', () => {
       'GET /teams/:teamId/ai-agents/:agentId/runs',
       'GET /teams/:teamId/ai-agents/:agentId/traces',
       'GET /teams/:teamId/ai-agents/:agentId/traces/:traceId',
+      'GET /projects/:projectKey/ai-agents/options',
       'POST /projects/:projectKey/ai-agents/:agentId/run/stream',
       'GET /projects/:projectKey/ai-agents/:agentId/threads',
       'PUT /projects/:projectKey/ai-agents/:agentId/threads/:threadId/favorite',

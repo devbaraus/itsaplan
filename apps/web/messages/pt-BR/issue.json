@@ -104,6 +104,7 @@
     "copied": "Copiado!",
     "copyPrompt": "Copiar prompt",
     "sharedPublicly": "Compartilhado publicamente",
+    "sharedThroughDocument": "Pública por um documento",
     "sharePublicly": "Compartilhar publicamente",
     "restore": "Restaurar issue",
     "archive": "Arquivar issue",
@@ -116,8 +117,8 @@
     "archiveTitle": "Arquivar issue",
     "apply": "Aplicar",
     "cannotBeUndone": "Isso não pode ser desfeito.",
-    "deleteDescription": "Excluir {issue}? Isto remove a issue, seus comentários, atividade e anexos.",
-    "archiveDescription": "Arquivar {issue}? Ela sai do quadro e pode ser restaurada depois.",
+    "deleteDescription": "A issue, seus comentários, atividade e anexos serão excluídos.",
+    "archiveDescription": "Ela sai do quadro e pode ser restaurada depois.",
     "applyDescription": "Aplicar <v>{action}</v> a esta issue?",
     "moveTitle": "Mover issue",
     "move": "Mover",
@@ -127,7 +128,9 @@
     "moveChooseProject": "Escolha um projeto",
     "moveColumn": "Status",
     "moveColumnMatching": "Status correspondente",
-    "moveCarriedOver": "Tipo, etiquetas e campos personalizados são mantidos quando o projeto de destino tem um com o mesmo nome. Ciclo, iniciativa e links para issues deste projeto são removidos."
+    "moveCarriedOver": "Tipo, etiquetas e campos personalizados são mantidos quando o projeto de destino tem um com o mesmo nome. Ciclo, iniciativa e links para issues deste projeto são removidos.",
+    "deleteQuestion": "Excluir {issue}?",
+    "archiveQuestion": "Arquivar {issue}?"
   },
   "create": {
     "title": "Nova issue",
@@ -225,14 +228,26 @@
     "allHidden": "Todas as subtarefas estão ocultas pelo filtro."
   },
   "subtaskDisposal": {
-    "intro": "{issues, plural, one {Esta issue tem} other {Estas issues têm}} {count, plural, one {# subtarefa} other {# subtarefas}}.",
     "deleteToo": "{count, plural, one {Excluí-la também} other {Excluí-las também}}",
     "archiveToo": "{count, plural, one {Arquivá-la também} other {Arquivá-las também}}",
     "detach": "{count, plural, one {Mantê-la sem pai} other {Mantê-las sem pai}}",
     "reassign": "{count, plural, one {Movê-la para outra issue} other {Movê-las para outra issue}}",
     "reassignTitle": "Mover as subtarefas para outra issue",
     "change": "Alterar",
-    "searchParent": "Buscar a nova issue pai…"
+    "searchParent": "Buscar a nova issue pai…",
+    "newParent": "Novo pai:",
+    "nestedGoAlong": "{count, plural, one {As subtarefas dela continuam abaixo dela.} other {As subtarefas delas continuam abaixo delas.}}",
+    "question": "{count, plural, one {O que acontece com a subtarefa?} other {O que acontece com as # subtarefas?}}",
+    "cascadeDeleteHint": "{count, plural, one {A subtarefa também é excluída.} other {As # subtarefas também são excluídas.}}",
+    "cascadeArchiveHint": "{count, plural, one {A subtarefa também é arquivada.} other {As # subtarefas também são arquivadas.}}",
+    "detachHint": "{count, plural, one {# subtarefa vira uma issue independente.} other {# subtarefas viram issues independentes.}}",
+    "reassignHint": "{count, plural, one {# subtarefa passa para a issue que você escolher.} other {# subtarefas passam para a issue que você escolher.}}",
+    "tagDeleted": "Excluída",
+    "tagArchived": "Arquivada",
+    "tagNoParent": "Sem pai",
+    "tagStaysUnder": "Fica sob {issue}",
+    "tagMovesTo": "Vai para {issue}",
+    "tagMovesAlong": "Vai junto"
   },
   "comments": {
     "you": "Você",
@@ -247,6 +262,8 @@
     "toSend": "para enviar",
     "unknownAuthor": "Desconhecido",
     "goToLastComment": "Ir para o último comentário",
+    "copyLink": "Copiar link",
+    "linkCopied": "Link copiado",
     "edit": "Editar",
     "edited": "editado",
     "deleteComment": "Excluir comentário",
@@ -267,7 +284,9 @@
     "no": "Não",
     "time": "Hora",
     "startTime": "Hora de início",
-    "endTime": "Hora de término"
+    "endTime": "Hora de término",
+    "pickOption": "Escolha uma opção…",
+    "noOption": "Sem opção"
   },
   "editor": {
     "descriptionPlaceholder": "Adicionar descrição…"
@@ -433,7 +452,7 @@
   "feedOldest": "Mais antigos",
   "feedChangeOrder": "Alterar ordem",
   "feedRunToggle": "Mostrar alterações semelhantes",
-  "shareUnavailable": "Esta issue compartilhada não está disponível. O link pode ter sido revogado.",
+  "shareUnavailable": "Esta issue compartilhada não está disponível. O link pode ter sido revogado ou expirado.",
   "fieldSelects": {
     "changeState": "Alterar estado…",
     "changeType": "Alterar tipo…",
@@ -476,7 +495,7 @@
     "noLabels": "Nenhum"
   },
   "agentRuns": {
-    "title": "Agent runs",
+    "title": "Execuções de agentes",
     "refresh": "Refresh",
     "loading": "Loading runs…",
     "loadError": "Could not load run history. Try refreshing.",
@@ -515,7 +534,9 @@
     "queued": "Waiting",
     "running": "Running",
     "queuedHint": "Waiting for a runner, a retry or its scheduled start.",
-    "queueTitle": "Runner queue",
+    "queueTitle": "Execuções de agentes",
+    "internalInFlight": "Agentes internos do workspace: {running} de {limit} em execução",
+    "internalInFlightNoLimit": "Agentes internos do workspace: {running} em execução",
     "queueEmpty": "No runs yet.",
     "activeSection": "In progress",
     "historySection": "History",

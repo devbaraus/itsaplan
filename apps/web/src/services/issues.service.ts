@@ -28,6 +28,8 @@ import {
   listIssueCycles,
   getIssueBySeq,
   searchIssues,
+  searchAllIssues,
+  listSubtree,
   updateIssue,
   deleteIssue,
   moveIssue,
@@ -151,6 +153,17 @@ export function useIssueBySeqQuery(projectKey: string | null, seq: number | null
   });
 }
 
+// Everything under the given issues, archived ones included, for a confirmation to
+// show what the action takes along. Read fresh each time a confirmation opens.
+export function useIssueSubtreeQuery(projectKey: string, ids: number[], enabled = true) {
+  return useQuery({
+    queryKey: qk.issueSubtree(projectKey, ids),
+    queryFn: () => listSubtree(projectKey, ids),
+    staleTime: 0,
+    enabled,
+  });
+}
+
 // Server-side issue search behind the command palette. Runs only when the palette
 // is open and the term is non-empty; includes archived issues (the board payload
 // never carries them). keepPreviousData holds the last list while the next query
@@ -167,6 +180,38 @@ export function useIssueSearchQuery(
     enabled: opts.enabled && projectKey != null && term.length > 0,
     placeholderData: keepPreviousData,
   });
+}
+
+// The palette's search in every project the user can read. It leaves out the
+// current project, whose own group lists its matches above.
+// While that project is still loading its id is unknown, so nothing is searched or
+// shown: a search without the id, or one cached from a page with no project, would
+// list its issues here too. Disabled, it shows no cached hits either.
+export function useOtherProjectIssueSearch(
+  q: string,
+  current: { key: string | null; id: number | null },
+  opts: { enabled: boolean },
+) {
+  const term = q.trim();
+  const active = opts.enabled && (current.key === null || current.id !== null);
+  const search = useQuery({
+    queryKey: qk.issueSearchAll(term, current.id),
+    queryFn: () =>
+      searchAllIssues({
+        q: term,
+        limit: 50,
+        perProjectLimit: 5,
+        excludeProjectId: current.id ?? undefined,
+      }),
+    enabled: active && term.length > 0,
+    // Only the term changed: the previous hits leave out the same project.
+    placeholderData: (previous, previousQuery) =>
+      previousQuery?.queryKey[2] === current.id ? previous : undefined,
+  });
+  return {
+    hits: active ? (search.data ?? []) : [],
+    fetching: active && search.isFetching,
+  };
 }
 
 // Updating an issue (drag/drop move, or an inline field edit). When `projectKey` is

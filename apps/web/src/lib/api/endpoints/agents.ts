@@ -54,6 +54,8 @@ export interface AiAgent {
   // Run triggers.
   triggerOnMention: boolean;
   triggerOnAssign: boolean;
+  // Off gates only the chat; mentions, delegations and schedules still run the agent.
+  chatEnabled: boolean;
   // The member custom fields that start a run when the agent is set into one, each
   // with the seconds its run waits before the agent may pick it up.
   fieldTriggers: AgentFieldTriggerRead[];
@@ -62,6 +64,7 @@ export interface AiAgent {
   // The member who created the agent, and whose runs an 'owner'-scoped runner is
   // limited to; 'team' scope serves any member's runs.
   ownerUserId: string | null;
+  ownerName: string | null;
   runnerScope: 'owner' | 'team';
   // When the agent's runner last polled, or null while none ever has.
   lastSeenAt: string | null;
@@ -78,6 +81,10 @@ export interface AiAgent {
   actionCount: number;
   skillCount: number;
   toolCount: number;
+  // Whether the viewer may act on the agent as a whole (edit, delete, rotate its key,
+  // use its invocation secret): the api refuses a member who shares only some of its
+  // projects.
+  canManage: boolean;
 }
 
 // A run waits as 'pending' until a worker or a runner takes it; 'canceled' is a
@@ -97,6 +104,10 @@ export interface AgentRun {
   issueId: number | null;
   issueIdentifier: string | null;
   issueTitle: string | null;
+  // A run started by a mention in a document comment. The title is null for a document
+  // that is private now.
+  documentId: number | null;
+  documentTitle: string | null;
   prompt: string;
   attempts: number;
   lastError: string | null;
@@ -143,6 +154,7 @@ export interface NewAiAgentInput {
   memoryLastMessages?: number | null;
   triggerOnMention?: boolean;
   triggerOnAssign?: boolean;
+  chatEnabled?: boolean;
   fieldTriggers?: AgentFieldTrigger[];
   delegationDelaySec?: number;
   projectIds?: number[];
@@ -165,6 +177,7 @@ export interface AiAgentPatch {
   memoryLastMessages?: number | null;
   triggerOnMention?: boolean;
   triggerOnAssign?: boolean;
+  chatEnabled?: boolean;
   fieldTriggers?: AgentFieldTrigger[];
   delegationDelaySec?: number;
   projectIds?: number[];
@@ -194,6 +207,12 @@ export const listAiAgents = (teamId: number, projectId?: number) =>
   request<AiAgent[]>(
     `/teams/${teamId}/ai-agents${projectId != null ? `?projectId=${projectId}` : ''}`,
   );
+
+// What a screen needs to name an agent; any member of the project reads it.
+export type ProjectAgent = Pick<AiAgent, 'id' | 'name' | 'kind' | 'model'>;
+
+export const listProjectAgents = (projectKey: string) =>
+  request<ProjectAgent[]>(`/projects/${projectKey}/ai-agents/options`);
 
 export const listAgentTools = (teamId: number) =>
   request<AgentTool[]>(`/teams/${teamId}/ai-agents/tools`);

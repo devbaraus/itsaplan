@@ -4,6 +4,14 @@ export * from './permissions';
 export { getSetting, getOrCreateSetting, setSetting } from './settings';
 export { readSecret, writeSecret } from './secrets';
 export { createWorkspace, teamWorkspaceId } from './workspace';
+export { TEAM_SLUG_PATTERN, insertOwnedTeam, isReservedSlug } from './team';
+export {
+  MAX_SUBTASK_DEPTH,
+  ancestorIds,
+  lockIssueTree,
+  parentLinkProblem,
+  subtreeIds,
+} from './issue-tree';
 export {
   TELEGRAM_BOT_SECRET_KEY,
   getInstanceBotConfig,

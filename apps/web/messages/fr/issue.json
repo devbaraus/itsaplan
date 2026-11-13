@@ -104,6 +104,7 @@
     "copied": "Copié !",
     "copyPrompt": "Copier le prompt",
     "sharedPublicly": "Partagé publiquement",
+    "sharedThroughDocument": "Public via un document",
     "sharePublicly": "Partager publiquement",
     "restore": "Restaurer le ticket",
     "archive": "Archiver le ticket",
@@ -116,8 +117,8 @@
     "archiveTitle": "Archiver le ticket",
     "apply": "Appliquer",
     "cannotBeUndone": "Cette action est irréversible.",
-    "deleteDescription": "Supprimer {issue} ? Le ticket, ses commentaires, son activité et ses pièces jointes seront supprimés.",
-    "archiveDescription": "Archiver {issue} ? Le ticket quitte le tableau et pourra être restauré plus tard.",
+    "deleteDescription": "Le ticket, ses commentaires, son activité et ses pièces jointes seront supprimés.",
+    "archiveDescription": "Le ticket quitte le tableau et pourra être restauré plus tard.",
     "applyDescription": "Appliquer <v>{action}</v> à ce ticket ?",
     "moveTitle": "Déplacer le ticket",
     "move": "Déplacer",
@@ -127,7 +128,9 @@
     "moveChooseProject": "Choisir un projet",
     "moveColumn": "Statut",
     "moveColumnMatching": "Statut correspondant",
-    "moveCarriedOver": "Le type, les étiquettes et les champs personnalisés sont conservés si le projet cible en a un du même nom. Le cycle, l’initiative et les liens vers des tickets de ce projet sont supprimés."
+    "moveCarriedOver": "Le type, les étiquettes et les champs personnalisés sont conservés si le projet cible en a un du même nom. Le cycle, l’initiative et les liens vers des tickets de ce projet sont supprimés.",
+    "deleteQuestion": "Supprimer {issue} ?",
+    "archiveQuestion": "Archiver {issue} ?"
   },
   "create": {
     "title": "Nouveau ticket",
@@ -225,14 +228,26 @@
     "allHidden": "Le filtre masque toutes les sous-tâches."
   },
   "subtaskDisposal": {
-    "intro": "{issues, plural, one {Ce ticket a} other {Ces tickets ont}} {count, plural, one {# sous-tâche} other {# sous-tâches}}.",
     "deleteToo": "{count, plural, one {La supprimer aussi} other {Les supprimer aussi}}",
     "archiveToo": "{count, plural, one {L'archiver aussi} other {Les archiver aussi}}",
     "detach": "{count, plural, one {La conserver sans parent} other {Les conserver sans parent}}",
     "reassign": "{count, plural, one {La déplacer vers un autre ticket} other {Les déplacer vers un autre ticket}}",
     "reassignTitle": "Déplacer les sous-tâches vers un autre ticket",
     "change": "Modifier",
-    "searchParent": "Rechercher le nouveau ticket parent…"
+    "searchParent": "Rechercher le nouveau ticket parent…",
+    "newParent": "Nouveau parent :",
+    "nestedGoAlong": "{count, plural, one {Ses propres sous-tâches restent sous elle.} other {Leurs propres sous-tâches restent sous elles.}}",
+    "question": "{issues, plural, one {{count, plural, one {Que faire de sa sous-tâche ?} other {Que faire de ses # sous-tâches ?}}} other {{count, plural, one {Que faire de leur sous-tâche ?} other {Que faire de leurs # sous-tâches ?}}}}",
+    "cascadeDeleteHint": "{count, plural, one {La sous-tâche est aussi supprimée.} other {Les # sous-tâches sont aussi supprimées.}}",
+    "cascadeArchiveHint": "{count, plural, one {La sous-tâche est aussi archivée.} other {Les # sous-tâches sont aussi archivées.}}",
+    "detachHint": "{count, plural, one {# sous-tâche devient un ticket indépendant.} other {# sous-tâches deviennent des tickets indépendants.}}",
+    "reassignHint": "{count, plural, one {# sous-tâche passe sous le ticket choisi.} other {# sous-tâches passent sous le ticket choisi.}}",
+    "tagDeleted": "Supprimée",
+    "tagArchived": "Archivée",
+    "tagNoParent": "Sans parent",
+    "tagStaysUnder": "Reste sous {issue}",
+    "tagMovesTo": "Passe sous {issue}",
+    "tagMovesAlong": "Suit le déplacement"
   },
   "comments": {
     "you": "Vous",
@@ -247,6 +262,8 @@
     "toSend": "pour envoyer",
     "unknownAuthor": "Inconnu",
     "goToLastComment": "Aller au dernier commentaire",
+    "copyLink": "Copier le lien",
+    "linkCopied": "Lien copié",
     "edit": "Modifier",
     "edited": "modifié",
     "deleteComment": "Supprimer le commentaire",
@@ -267,7 +284,9 @@
     "no": "Non",
     "time": "Heure",
     "startTime": "Heure de début",
-    "endTime": "Heure de fin"
+    "endTime": "Heure de fin",
+    "pickOption": "Choisir une option…",
+    "noOption": "Aucune option"
   },
   "editor": {
     "descriptionPlaceholder": "Ajouter une description…"
@@ -433,7 +452,7 @@
   "feedOldest": "Plus anciens",
   "feedChangeOrder": "Changer l'ordre",
   "feedRunToggle": "Afficher les changements similaires",
-  "shareUnavailable": "Ce ticket partagé n'est pas disponible. Le lien a peut-être été révoqué.",
+  "shareUnavailable": "Ce ticket partagé n'est pas disponible. Le lien a peut-être été révoqué ou a expiré.",
   "fieldSelects": {
     "changeState": "Changer l'état…",
     "changeType": "Changer le type…",
@@ -476,7 +495,7 @@
     "noLabels": "Aucune"
   },
   "agentRuns": {
-    "title": "Agent runs",
+    "title": "Exécutions d'agents",
     "refresh": "Refresh",
     "loading": "Loading runs…",
     "loadError": "Could not load run history. Try refreshing.",
@@ -515,7 +534,9 @@
     "queued": "Waiting",
     "running": "Running",
     "queuedHint": "Waiting for a runner, a retry or its scheduled start.",
-    "queueTitle": "Runner queue",
+    "queueTitle": "Exécutions d'agents",
+    "internalInFlight": "Agents internes de l'espace de travail : {running} sur {limit} en cours",
+    "internalInFlightNoLimit": "Agents internes de l'espace de travail : {running} en cours",
     "queueEmpty": "No runs yet.",
     "activeSection": "In progress",
     "historySection": "History",

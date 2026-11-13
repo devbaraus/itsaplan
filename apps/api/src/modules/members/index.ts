@@ -12,7 +12,7 @@ import {
 } from '#shared/access';
 import { HttpError } from '#shared/lib';
 import { accessErrors, commonErrors, errors } from '#shared/responses';
-import { getDefaultRoleId, getRole } from '#modules/roles/service';
+import { getMemberRole } from '#modules/roles/service';
 import { getTeamMembership } from '#modules/teams/service';
 import type { ProjectRow } from '#modules/projects/service';
 import { isAgentUser } from '#modules/agents/core/service';
@@ -125,18 +125,14 @@ export const memberRoutes = new Elysia({ name: 'members', detail: { tags: ['Memb
       }
       await assertMayGrantOwner(project, body.role, user);
       await assertAgentNotOwner(body.userId, body.role);
-      // An explicit roleId must name a role of this project's team; omitting it
-      // joins the member on the team's default role, as accepting an invite does.
+      // An explicit roleId must name a role of this project's team or a system role;
+      // omitting it joins the member on the default role, as accepting an invite does.
       let roleId: number | null = null;
       if (body.role === 'member') {
-        if (body.roleId != null) {
-          const role = await getRole(project.teamId, body.roleId);
-          if (!role) throw new HttpError(400, "roleId does not belong to this project's team");
-          await assertGrantablePermissions(project, user, role.permissions);
-          roleId = role.id;
-        } else {
-          roleId = await getDefaultRoleId(project.teamId);
-        }
+        const role = await getMemberRole(project.teamId, body.roleId);
+        if (!role) throw new HttpError(400, "roleId does not belong to this project's team");
+        await assertGrantablePermissions(project, user, role.permissions);
+        roleId = role.id;
       }
       if (!(await addMember(project.id, body.userId, body.role, roleId))) {
         throw new HttpError(
@@ -155,7 +151,7 @@ export const memberRoutes = new Elysia({ name: 'members', detail: { tags: ['Memb
         summary: 'Add a member',
         description:
           "Add a member of the project's team to the project, as an owner or on a custom role " +
-          "(roleId, or null for the team's default role). Only a project owner or a team owner " +
+          '(roleId, or null for the default role). Only a project owner or a team owner ' +
           'or manager adds an owner.',
         ...mcpTool('add_member'),
       },
@@ -184,17 +180,14 @@ export const memberRoutes = new Elysia({ name: 'members', detail: { tags: ['Memb
         return noContent();
       }
 
-      const roleId = body.roleId ?? null;
-      if (roleId != null) {
-        const role = await getRole(project.teamId, roleId);
-        if (!role) throw new HttpError(400, "roleId does not belong to this project's team");
-        await assertGrantablePermissions(project, user, role.permissions);
-      }
+      const role = await getMemberRole(project.teamId, body.roleId);
+      if (!role) throw new HttpError(400, "roleId does not belong to this project's team");
+      await assertGrantablePermissions(project, user, role.permissions);
       // Demoting an owner to a member must keep at least one owner on the project.
       if (target === 'owner' && (await countOwners(project.id)) === 1) {
         throw new HttpError(400, 'A project must have at least one owner');
       }
-      await setMembership(project.id, params.userId, 'member', roleId);
+      await setMembership(project.id, params.userId, 'member', role.id);
       return noContent();
     },
     {
